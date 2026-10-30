@@ -92,3 +92,7 @@ input[type=checkbox]:checked{animation:check-pop .3s ease-out}
 @keyframes check-pop{50%{transform:scale(1.16)}}
 @media(hover:none){.disclosure-card:hover,.watch-card:hover,.btn.primary:hover:not(:disabled){transform:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.main-content,.disclosure-card,.watch-card,.notification-item,.panel,.stats-grid>div{opacity:1;translate:none;scale:none}.compare-bars i{transform:none}.hero:before,.hero:after,.logo-mark:after,.toast-check:before,.toast-check:after,.timeline-dot.current:after,.radar-center:after{display:none}}
+.logo-home{display:inline-flex;text-align:left;border-radius:16px;transition:transform .25s,filter .25s}
+.logo-home:hover{filter:brightness(1.03);transform:translateY(-2px)}
+.logo-home:active{transform:scale(.97)}
+.main-content:focus{outline:none}
