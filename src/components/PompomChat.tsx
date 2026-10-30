@@ -17,10 +17,9 @@ function answer(value: string) {
   return '아직 자유로운 AI 대화는 할 수 없지만, 앱 사용법은 도와줄 수 있어! 관심종목 추가, 알림 설정, 정정공시, 데모 데이터 중 궁금한 것을 물어봐 줘 🐾';
 }
 type MascotPose = 'cycle'|'rest'|'nap'|'cushion';
-function Portrait({ back = false, angry = false, moving = false, pose = 'cycle' }: { back?: boolean; angry?: boolean; moving?: boolean; pose?: MascotPose }) {
+function Portrait({ angry = false, moving = false, pose = 'cycle' }: { angry?: boolean; moving?: boolean; pose?: MascotPose }) {
   const base = `${import.meta.env.BASE_URL}chatbot/`;
   if (angry) return <span className="pompom-portrait is-angry-pose" aria-hidden="true"><img src={`${base}pompom-angry.png`} alt="" /></span>;
-  if (back) return <span className="pompom-portrait is-back-pose" aria-hidden="true"><img src={`${base}pompom-back.png`} alt="" /></span>;
   if (pose === 'nap') return <span className={`pompom-portrait is-nap-pose ${moving ? 'is-moving-pose' : ''}`} aria-hidden="true"><img src={`${base}pompom-nap.png`} alt="" /></span>;
   if (pose === 'cushion') return <span className={`pompom-portrait is-cushion-pose ${moving ? 'is-moving-pose' : ''}`} aria-hidden="true"><img src={`${base}pompom-cushion.png`} alt="" /></span>;
   if (pose === 'rest') return <span className={`pompom-portrait is-rest-pose ${moving ? 'is-moving-pose' : ''}`} aria-hidden="true"><img src={`${base}pompom-rest.png`} alt="" /></span>;
@@ -35,8 +34,7 @@ export default function PompomChat() {
   const [aiMode, setAiMode] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const sending = useRef(false);
   const [draft, setDraft] = useState('');
-  const [reaction, setReaction] = useState<'idle'|'wonder'|'walking'|'angry'>('idle');
-  const [backPose, setBackPose] = useState(false);
+  const [reaction, setReaction] = useState<'idle'|'wonder'|'angry'>('idle');
   const [mascotPose, setMascotPose] = useState<MascotPose>('rest');
   const [dragging, setDragging] = useState(false);
   const [clickLevel, setClickLevel] = useState(0);
@@ -60,7 +58,6 @@ export default function PompomChat() {
     if (opened && nextLevel < 5) close();
     else setOpened(true);
     reactionTimers.current.forEach(window.clearTimeout);
-    setBackPose(false);
     if (nextLevel >= 5) {
       setReaction('angry');
       angerTimer.current = window.setTimeout(() => {
@@ -73,12 +70,7 @@ export default function PompomChat() {
     const choices = poses.filter(pose => pose !== mascotPose);
     setMascotPose(choices[Math.floor(Math.random() * choices.length)]);
     setReaction('wonder');
-    reactionTimers.current = [
-      window.setTimeout(() => setReaction('walking'), 650),
-      window.setTimeout(() => setBackPose(true), 1250),
-      window.setTimeout(() => setBackPose(false), 1900),
-      window.setTimeout(() => setReaction('idle'), 2600),
-    ];
+    reactionTimers.current = [window.setTimeout(() => setReaction('idle'), 650)];
   };
   const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
@@ -93,8 +85,6 @@ export default function PompomChat() {
     if (!active.moved) {
       active.moved = true;
       setDragging(true);
-      setBackPose(true);
-      setReaction('walking');
     }
     const baseLeft = active.rect.left - active.startOffsetX, baseRight = active.rect.right - active.startOffsetX;
     const baseTop = active.rect.top - active.startOffsetY, baseBottom = active.rect.bottom - active.startOffsetY;
@@ -112,8 +102,6 @@ export default function PompomChat() {
     suppressClick.current = true;
     window.setTimeout(() => { suppressClick.current = false; }, 80);
     setDragging(false);
-    setBackPose(false);
-    setReaction('idle');
   };
   useEffect(() => () => {
     reactionTimers.current.forEach(window.clearTimeout);
@@ -149,6 +137,6 @@ export default function PompomChat() {
       <form className="pompom-form" onSubmit={event => { event.preventDefault(); send(draft); }}><input ref={input} aria-label="폼폼에게 질문하기" value={draft} onChange={event => setDraft(event.target.value)} maxLength={300} placeholder={user ? `${user.name}님, 무엇이 궁금해요?` : '궁금한 앱 사용법을 물어봐'} autoComplete="off"/><button type="submit" aria-label="질문 보내기" disabled={busy || !draft.trim()}><ArrowUp size={19}/></button></form>
       <p className="pompom-disclaimer">{aiMode ? 'AI 답변은 틀릴 수 있어요 · 실시간 시세 미연결' : '준비된 도움말로 답해요 · 대화는 서버에 전송하지 않아요'}</p>
     </section>}
-    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`} ${dragging?'is-dragging':''}`} style={{'--pompom-scale': reaction==='angry' ? 3.1 : 1 + clickLevel * .28} as CSSProperties} aria-label={reaction==='angry'?'폼폼이 화났어요':opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClick={reactAndOpen}><span className="pompom-label">{reaction==='angry'?'그만 눌러!':opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">{reaction==='angry'?'!!':'?'}</span><Portrait back={backPose && reaction!=='angry'} angry={reaction==='angry'} moving={reaction==='walking'||dragging} pose={mascotPose} /><span className="pompom-spark">✦</span></button>
+    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`} ${dragging?'is-dragging':''}`} style={{'--pompom-scale': reaction==='angry' ? 3.1 : 1 + clickLevel * .28} as CSSProperties} aria-label={reaction==='angry'?'폼폼이 화났어요':opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClick={reactAndOpen}><span className="pompom-label">{reaction==='angry'?'그만 눌러!':opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">{reaction==='angry'?'!!':'?'}</span><Portrait angry={reaction==='angry'} moving={dragging} pose={mascotPose} /><span className="pompom-spark">✦</span></button>
   </div>;
 }
