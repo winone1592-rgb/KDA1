@@ -113,3 +113,5 @@ Vite 개발 서버의 HTTP 200 응답과 React 진입 파일을 확인했습니�
 환경 오류가 표시되면 `.env`의 변수 이름에 `NEXT_PUBLIC_`가 아니라 `VITE_`를 사용했는지, 개발 서버를 재시작했는지 확인합니다.
 
 이메일 인증을 사용하지 않고 데이터베이스에 저장하려면 로그인 화면의 **이메일 인증 없이 바로 시작** 버튼을 사용합니다. Supabase Dashboard → Authentication → Sign In / Providers → Anonymous Sign-Ins를 활성화해야 하며, 익명 사용자도 `user_preferences` RLS를 통과해 저장합니다. 익명 계정은 같은 브라우저에 연결되며, 기기 변경/브라우저 데이터 삭제 전 계정 전환 기능을 별도 구현해야 합니다.
+
+회원가입은 이메일·비밀번호 방식을 유지하고, 전화번호는 로컬 데모 인증번호 입력 후 Supabase Auth의 사용자 메타데이터와 `user_preferences` 프로필 행에 저장합니다. 실제 SMS 인증은 발송하지 않습니다. 연락처 컬럼 추가 SQL: `supabase/migrations/202610300002_contact_fields.sql`. 기존 SQL Editor에 전체 내용을 한 번 실행하세요. 비밀번호는 Supabase Auth가 해시로 관리하며 앱 DB 테이블에 평문으로 저장하지 않습니다.
