@@ -30,17 +30,7 @@ function useStore() {
             setAuthReady(true);
             const account=session?.user;
             setUser(account ? {id:account.id,email:account.email||'',name:String(account.user_metadata?.name||account.email?.split('@')[0]||'사용자').slice(0,20)} : null);
-            metadata.current=account?.user_metadata||{};
-            const cloud=metadata.current.radar_data;
-            if(account&&cloud&&typeof cloud==='object'){
-                const values=cloud as Record<string,unknown>;
-                if(stockIds(values.stocks))setStocks(values.stocks);
-                if(disclosureIds(values.saved))setSaved(values.saved);
-                if(disclosureIds(values.seen))setSeen(values.seen);
-                if(values.settings&&typeof values.settings==='object'&&!Array.isArray(values.settings)){try{const valid={...defaultSettings,...values.settings};localStorage.setItem('radar-settings',JSON.stringify(valid));setSettings(valid);}catch{}}
-                if(Array.isArray(values.checks)&&values.checks.every(item=>typeof item==='string'))setChecks(values.checks as string[]);
-                for(const key of ['stocks','saved','seen','settings','checks'])if(values[key]!==undefined){try{localStorage.setItem('radar-'+key,JSON.stringify(values[key]));}catch{}}
-            }
+            if(account)setTimeout(async()=>{try{const {data,error}=await supabase.from('user_preferences').select('*').eq('user_id',account.id).maybeSingle();if(error)throw error;if(data){if(stockIds(data.watchlist)){setStocks(data.watchlist);localStorage.setItem('radar-stocks',JSON.stringify(data.watchlist));}if(disclosureIds(data.saved_disclosures)){setSaved(data.saved_disclosures);localStorage.setItem('radar-saved',JSON.stringify(data.saved_disclosures));}if(disclosureIds(data.read_disclosures)){setSeen(data.read_disclosures);localStorage.setItem('radar-seen',JSON.stringify(data.read_disclosures));}if(data.notification_settings&&typeof data.notification_settings==='object'){const settings={...defaultSettings,...data.notification_settings};setSettings(settings);localStorage.setItem('radar-settings',JSON.stringify(settings));}if(Array.isArray(data.checklist)){setChecks(data.checklist);localStorage.setItem('radar-checks',JSON.stringify(data.checklist));}}}catch(error){console.error('Supabase preferences could not be loaded',error);}},0);
         });
         return () => {active=false;subscription.unsubscribe();};
     }, []);
@@ -63,7 +53,6 @@ function useStore() {
     } | null>(null);
     const [dirty, setDirty] = useState(false), [pendingPage, setPendingPage] = useState<Page | null>(null);
     const syncQueue = useRef(Promise.resolve());
-    const metadata = useRef<Record<string, unknown>>({});
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const notify = useCallback((text: string, undo?: () => void) => { clearTimeout(timer.current); setMessage({ text, undo }); timer.current = setTimeout(() => setMessage(null), 4500); }, []);
     useEffect(() => () => clearTimeout(timer.current), []);
