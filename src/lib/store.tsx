@@ -22,10 +22,12 @@ export function loadSettings(): Settings { const raw = read<Record<string, unkno
 function route(): Page { const p = location.hash.slice(1).split('?')[0]; return Object.hasOwn(titles, p) ? p as Page : 'feed'; }
 function useStore() {
     const [user, setUser] = useState<User | null>(null);
+    const [authReady,setAuthReady]=useState(false);
     const [aiAvailable, setAiAvailable] = useState(false);
     useEffect(() => { let active = true; api<{aiAvailable: boolean}>('session').then(data => { if (active) setAiAvailable(data.aiAvailable); }).catch(() => {});
         if (!supabase) return () => { active = false; };
         const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{
+            setAuthReady(true);
             const account=session?.user;
             setUser(account ? {id:account.id,email:account.email||'',name:String(account.user_metadata?.name||account.email?.split('@')[0]||'사용자').slice(0,20)} : null);
             metadata.current=account?.user_metadata||{};
@@ -103,7 +105,7 @@ function useStore() {
         notify('알림 설정을 저장했습니다.'); return ok; };
     const toggleCheck = (id: string) => { const next = checks.includes(id) ? checks.filter(x => x !== id) : [...checks, id]; setChecks(next); write('radar-checks', next); };
     const preview = (s: Scenario) => { const p = s === 'nodoc' ? 'detail' : s === 'noai' ? 'ai' : 'feed'; setPage(p); setScenario(s); window.scrollTo({ top: 0, behavior: 'instant' }); };
-    return { user, setUser, aiAvailable, page, go, scenario, preview, selected, open, stocks, toggleStock, saved, toggleSaved, seen, readAll, settings, saveSettings, checks, toggleCheck, message, setMessage, notify, dirty, setDirty, pendingPage, setPendingPage, discard };
+    return { user, setUser, authReady, aiAvailable, page, go, scenario, preview, selected, open, stocks, toggleStock, saved, toggleSaved, seen, readAll, settings, saveSettings, checks, toggleCheck, message, setMessage, notify, dirty, setDirty, pendingPage, setPendingPage, discard };
 }
 type Store = ReturnType<typeof useStore>;
 const Context = createContext<Store | null>(null);
