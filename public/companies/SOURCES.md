@@ -8,3 +8,6 @@ Simple Icons SVG (CC0). 각 상표권은 해당 권리자에게 있습니다.
 - Hyundai: https://www.hyundai.com
 - Kia: https://www.kia.com
 - LG: https://www.lg.com/global/our-brand/brand-expression/elements/logo/index.jsp
+- NVIDIA: https://www.nvidia.com/en-us
+- Apple: https://www.apple.com
+- Tesla: https://www.tesla.com/tesla-gallery

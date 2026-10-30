@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { companies, disclosures, defaultSettings, titles, type Page, type Scenario, type Settings } from './data';
+import { api, type User } from './api';
 function read<T>(key: string, fallback: T, valid: (v: unknown) => boolean): T { try {
     const v: unknown = JSON.parse(localStorage.getItem(key) || 'null');
     return valid(v) ? v as T : fallback;
@@ -7,7 +8,8 @@ function read<T>(key: string, fallback: T, valid: (v: unknown) => boolean): T { 
 catch {
     return fallback;
 } }
-const ids = (v: unknown): v is number[] => Array.isArray(v) && v.every(i => Number.isInteger(i) && i >= 0 && i < 6);
+const stockIds = (v: unknown): v is number[] => Array.isArray(v) && v.every(i => companies.some(c => c.id === i));
+const disclosureIds = (v: unknown): v is number[] => Array.isArray(v) && v.every(i => disclosures.some(d => d.id === i));
 export function loadSettings(): Settings { const raw = read<Record<string, unknown>>('radar-settings', {}, v => !!v && typeof v === 'object' && !Array.isArray(v)); const next = { ...defaultSettings }; for (const key of Object.keys(next) as (keyof Settings)[]) {
     const v = raw[key];
     if (typeof v === typeof next[key])
@@ -18,6 +20,9 @@ export function loadSettings(): Settings { const raw = read<Record<string, unkno
         next[k] = defaultSettings[k]; return next; }
 function route(): Page { const p = location.hash.slice(1).split('?')[0]; return Object.hasOwn(titles, p) ? p as Page : 'feed'; }
 function useStore() {
+    const [user, setUser] = useState<User | null>(null);
+    const [aiAvailable, setAiAvailable] = useState(false);
+    useEffect(() => { let active = true; api<{user: User | null; aiAvailable: boolean}>('session').then(data => { if (active) { setUser(data.user); setAiAvailable(data.aiAvailable); } }).catch(() => {}); return () => { active = false; }; }, []);
     const [page, setPage] = useState<Page>(route), [scenario, setScenario] = useState<Scenario>('');
     const [selected, setSelected] = useState(() => { try {
         const n = Number(sessionStorage.getItem('radar-selected'));
@@ -26,9 +31,9 @@ function useStore() {
     catch {
         return 0;
     } });
-    const [stocks, setStocks] = useState<number[]>(() => read('radar-stocks', [0, 1, 2, 3], ids));
-    const [saved, setSaved] = useState<number[]>(() => read('radar-saved', [], ids));
-    const [seen, setSeen] = useState<number[]>(() => read('radar-seen', [], ids));
+    const [stocks, setStocks] = useState<number[]>(() => read('radar-stocks', [0, 1, 2, 3], stockIds));
+    const [saved, setSaved] = useState<number[]>(() => read('radar-saved', [], disclosureIds));
+    const [seen, setSeen] = useState<number[]>(() => read('radar-seen', [], disclosureIds));
     const [settings, setSettings] = useState<Settings>(loadSettings);
     const [checks, setChecks] = useState<string[]>(() => read('radar-checks', [], v => Array.isArray(v) && v.every(i => typeof i === 'string')));
     const [message, setMessage] = useState<{
@@ -76,7 +81,7 @@ function useStore() {
         notify('알림 설정을 저장했습니다.'); return ok; };
     const toggleCheck = (id: string) => { const next = checks.includes(id) ? checks.filter(x => x !== id) : [...checks, id]; setChecks(next); write('radar-checks', next); };
     const preview = (s: Scenario) => { const p = s === 'nodoc' ? 'detail' : s === 'noai' ? 'ai' : 'feed'; setPage(p); setScenario(s); window.scrollTo({ top: 0, behavior: 'instant' }); };
-    return { page, go, scenario, preview, selected, open, stocks, toggleStock, saved, toggleSaved, seen, readAll, settings, saveSettings, checks, toggleCheck, message, setMessage, notify, dirty, setDirty, pendingPage, setPendingPage, discard };
+    return { user, setUser, aiAvailable, page, go, scenario, preview, selected, open, stocks, toggleStock, saved, toggleSaved, seen, readAll, settings, saveSettings, checks, toggleCheck, message, setMessage, notify, dirty, setDirty, pendingPage, setPendingPage, discard };
 }
 type Store = ReturnType<typeof useStore>;
 const Context = createContext<Store | null>(null);
