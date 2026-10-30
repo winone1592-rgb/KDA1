@@ -16,7 +16,7 @@ function answer(value: string) {
   if (/안녕|고마워|폼폼/.test(value)) return '반가워! 오늘도 너의 작은 발견을 응원해 💛 궁금한 앱 사용법을 아래 질문에서 골라 봐.';
   return '아직 자유로운 AI 대화는 할 수 없지만, 앱 사용법은 도와줄 수 있어! 관심종목 추가, 알림 설정, 정정공시, 데모 데이터 중 궁금한 것을 물어봐 줘 🐾';
 }
-function Portrait() { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/pompom-cutout.png`} alt="" /></span>; }
+function Portrait({ back = false }: { back?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" /></span>; }
 
 export default function PompomChat() {
   const { page, go, user, aiAvailable } = useRadar();
@@ -26,12 +26,27 @@ export default function PompomChat() {
   const [aiMode, setAiMode] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const sending = useRef(false);
   const [draft, setDraft] = useState('');
+  const [reaction, setReaction] = useState<'idle'|'wonder'|'walking'>('idle');
+  const [backPose, setBackPose] = useState(false);
+  const reactionTimers = useRef<number[]>([]);
   const input = useRef<HTMLInputElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   const history = useRef<HTMLDivElement>(null);
   useEffect(() => { if (opened) input.current?.focus(); }, [opened]);
   useEffect(() => { if (history.current) history.current.scrollTop = history.current.scrollHeight; }, [messages, opened]);
   const close = () => { setOpened(false); launcher.current?.focus(); };
+  const reactAndOpen = () => {
+    if (opened) { close(); return; }
+    reactionTimers.current.forEach(window.clearTimeout);
+    setOpened(true); setReaction('wonder'); setBackPose(false);
+    reactionTimers.current = [
+      window.setTimeout(() => setReaction('walking'), 650),
+      window.setTimeout(() => setBackPose(true), 1250),
+      window.setTimeout(() => setBackPose(false), 1900),
+      window.setTimeout(() => setReaction('idle'), 2600),
+    ];
+  };
+  useEffect(() => () => reactionTimers.current.forEach(window.clearTimeout), []);
   const send = async (text: string) => {
     const clean = text.trim().slice(0, 300);
     if (!clean || sending.current) return;
@@ -62,6 +77,6 @@ export default function PompomChat() {
       <form className="pompom-form" onSubmit={event => { event.preventDefault(); send(draft); }}><input ref={input} aria-label="폼폼에게 질문하기" value={draft} onChange={event => setDraft(event.target.value)} maxLength={300} placeholder={user ? `${user.name}님, 무엇이 궁금해요?` : '궁금한 앱 사용법을 물어봐'} autoComplete="off"/><button type="submit" aria-label="질문 보내기" disabled={busy || !draft.trim()}><ArrowUp size={19}/></button></form>
       <p className="pompom-disclaimer">{aiMode ? 'AI 답변은 틀릴 수 있어요 · 실시간 시세 미연결' : '준비된 도움말로 답해요 · 대화는 서버에 전송하지 않아요'}</p>
     </section>}
-    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''}`} aria-label={opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onClick={() => opened ? close() : setOpened(true)}><span className="pompom-label">{opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><Portrait /><span className="pompom-spark">✦</span></button>
+    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`}`} aria-label={opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onClick={reactAndOpen}><span className="pompom-label">{opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">?</span><Portrait back={backPose} /><span className="pompom-spark">✦</span></button>
   </div>;
 }
