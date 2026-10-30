@@ -26,6 +26,9 @@ export interface Disclosure {
     date: string;
     note: string;
     comparable: boolean;
+    previousText?: string[];
+    correctedText?: string[];
+    correctionReason?: string;
 }
 export const companies: Company[] = [
 {"id":0,"name":"삼성전자","code":"005930","sector":"반도체 · IT","color":"samsung","logo":"samsung","website":"https://www.samsung.com/sec/","market":"KOSPI","marketRank":1},
@@ -73,10 +76,10 @@ export const companies: Company[] = [
 {"id":42,"name":"Intel","code":"INTC","sector":"미국 · 반도체","color":"blue","initials":"INT","website":"https://www.intel.com/","market":"US","marketRank":20}
 ];
 export const disclosures: Disclosure[] = [
-    { id: 0, companyId: 0, title: '연결 누적 매출액 정정 제출', report: '분기', kind: '정정', metric: '매출액', before: 100, after: 90, unit: '억원', time: '방금 전', date: '2026.10.30 10:42', note: '연결 매출액 집계 오류를 바로잡은 가상 정정 사례입니다.', comparable: true },
-    { id: 1, companyId: 1, title: '연구개발비 자산화 내역 신규 공시', report: '사업', kind: '신규', metric: '연구개발비', before: 0, after: 18, unit: '억원', time: '57분 전', date: '2026.10.30 09:45', note: '처음 제출된 문서입니다. 직전 비교 문서가 없어 증감률을 계산하지 않습니다.', comparable: false },
-    { id: 2, companyId: 2, title: '특수관계자 대여금 잔액 오기 수정', report: '반기', kind: '정정', metric: '대여금 잔액', before: 100, after: 50, unit: '억원', time: '2시간 전', date: '2026.10.30 08:30', note: '주석에 기재된 대여금 잔액 오기를 수정한 가상 사례입니다.', comparable: true },
-    { id: 3, companyId: 3, title: '영업이익 수치 재산정', report: '분기', kind: '정정', metric: '영업이익', before: 40, after: 44, unit: '억원', time: '3시간 전', date: '2026.10.30 07:30', note: '비용 분류 조정으로 영업이익을 재산정한 가상 사례입니다.', comparable: true },
+    { id: 0, companyId: 0, title: '연결 누적 매출액 정정 제출', report: '분기', kind: '정정', metric: '매출액', before: 100, after: 90, unit: '억원', time: '방금 전', date: '2026.10.30 10:42', note: '매출 인식 대상 거래와 보고 기간을 다시 확인하고 집계 기준을 맞춘 변경 사례입니다.', comparable: true, correctionReason: '일부 거래의 인식 시점과 연결 범위 검토 결과를 반영했습니다.', previousText: ['연결 손익계산서의 3분기 누적 매출액은 100억원으로 기재했습니다.', '매출액은 보고 기간에 인식된 제품 및 서비스 매출을 기준으로 집계했습니다.', '비교 기간의 매출 분류 기준은 직전 제출본과 동일하게 적용했습니다.'], correctedText: ['연결 손익계산서의 3분기 누적 매출액을 90억원으로 정정했습니다.', '일부 거래의 인식 시점을 재검토해 보고 기간별 매출 집계를 수정했습니다.', '비교 기간의 매출 분류 기준을 재확인하고 연결 범위 변경 사항을 반영했습니다.'] },
+    { id: 1, companyId: 1, title: '연구개발비 자산화 내역 신규 공시', report: '사업', kind: '신규', metric: '연구개발비', before: 0, after: 18, unit: '억원', time: '57분 전', date: '2026.10.30 09:45', note: '처음 제출된 문서입니다. 직전 비교 문서가 없어 증감률을 계산하지 않습니다.', comparable: false, correctedText: ['연구개발 프로젝트별 지출 내역과 자산 인식 기준을 보고서에 추가했습니다.', '당기 중 자산으로 인식한 연구개발비는 18억원이며, 기술적 실현 가능성과 향후 효익을 기준으로 분류했습니다.', '연구 단계에서 발생한 비용은 발생한 기간의 비용으로 처리하고, 개발 단계에서 요건을 충족한 금액만 자산에 포함했습니다.'] },
+    { id: 2, companyId: 2, title: '특수관계자 대여금 잔액 오기 수정', report: '반기', kind: '정정', metric: '대여금 잔액', before: 100, after: 50, unit: '억원', time: '2시간 전', date: '2026.10.30 08:30', note: '주석에 기재된 대여금 잔액과 관련 거래의 기말 잔액을 대조해 정정한 변경 사례입니다.', comparable: true, correctionReason: '주석 내 기초 잔액과 당기 회수액 반영 과정의 차이를 수정했습니다.', previousText: ['특수관계자 대여금의 기말 잔액은 100억원으로 기재했습니다.', '당기 중 회수액은 잔액 산정에 반영하지 않았습니다.', '관련 거래의 만기와 이자 조건은 주석에 별도로 기재했습니다.'], correctedText: ['특수관계자 대여금의 기말 잔액을 50억원으로 정정했습니다.', '당기 중 회수된 금액을 반영해 기말 잔액을 다시 산정했습니다.', '관련 거래의 만기, 이자 조건 및 회수 내역을 주석에 추가했습니다.'] },
+    { id: 3, companyId: 3, title: '영업이익 수치 재산정', report: '분기', kind: '정정', metric: '영업이익', before: 40, after: 44, unit: '억원', time: '3시간 전', date: '2026.10.30 07:30', note: '비용 계정의 분류를 재검토하고 영업이익 계산 항목을 다시 반영한 변경 사례입니다.', comparable: true, correctionReason: '판매관리비 일부 항목의 분류 기준을 재검토했습니다.', previousText: ['분기 영업이익은 40억원으로 기재했습니다.', '판매관리비에는 해당 기간에 발생한 판관비와 기타 비용을 포함했습니다.', '영업이익은 매출총이익에서 판매관리비를 차감해 산출했습니다.'], correctedText: ['분기 영업이익을 44억원으로 정정했습니다.', '판매관리비 중 일부 항목의 계정 분류를 검토해 금액을 재배분했습니다.', '영업이익 산출표와 관련 주석의 분류 기준을 함께 수정했습니다.'] },
 ];
 export function delta(d: Disclosure) { return d.comparable && d.before !== 0 ? (d.after - d.before) / d.before * 100 : null; }
 export function percent(d: Disclosure) { const v = delta(d); return v === null ? '신규 접수' : `${v > 0 ? '+' : ''}${v.toFixed(1)}%`; }
