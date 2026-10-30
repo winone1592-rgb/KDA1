@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// These are public browser credentials (never use a secret/service_role key here).
+// Defaults let Vercel builds work without exposing the developer's ignored .env file.
+const url = import.meta.env.VITE_SUPABASE_URL || 'https://wxxssmlnkphxqixmuzhc.supabase.co';
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_7HSbD_ir81D4TRV5j_CCfQ_4SYCTc9e';
 export const supabase = url && key && import.meta.env.MODE !== 'test' ? createClient(url, key, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
 export function authError(error: {message: string}) {
  if (/invalid login credentials/i.test(error.message)) return '이메일 또는 비밀번호를 확인해 주세요.';
