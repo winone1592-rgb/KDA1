@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowUp, RotateCcw, Sparkles, X } from 'lucide-react';
 import { titles, type Page } from '../lib/data';
 import { useRadar } from '../lib/store';
@@ -16,7 +16,7 @@ function answer(value: string) {
   if (/안녕|고마워|폼폼/.test(value)) return '반가워! 오늘도 너의 작은 발견을 응원해 💛 궁금한 앱 사용법을 아래 질문에서 골라 봐.';
   return '아직 자유로운 AI 대화는 할 수 없지만, 앱 사용법은 도와줄 수 있어! 관심종목 추가, 알림 설정, 정정공시, 데모 데이터 중 궁금한 것을 물어봐 줘 🐾';
 }
-function Portrait({ back = false }: { back?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" /></span>; }
+function Portrait({ back = false, kicking = false }: { back?: boolean; kicking?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" />{kicking && <span className="pompom-legs"><i/><i/></span>}</span>; }
 
 export default function PompomChat() {
   const { page, go, user, aiAvailable } = useRadar();
@@ -26,9 +26,16 @@ export default function PompomChat() {
   const [aiMode, setAiMode] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const sending = useRef(false);
   const [draft, setDraft] = useState('');
-  const [reaction, setReaction] = useState<'idle'|'wonder'|'walking'>('idle');
+  const [reaction, setReaction] = useState<'idle'|'wonder'|'walking'|'angry'>('idle');
   const [backPose, setBackPose] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [clickLevel, setClickLevel] = useState(0);
   const reactionTimers = useRef<number[]>([]);
+  const angerTimer = useRef<number | undefined>(undefined);
+  const widget = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ pointerId: number; startX: number; startY: number; startOffsetX: number; startOffsetY: number; rect: DOMRect; moved: boolean } | null>(null);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const suppressClick = useRef(false);
   const input = useRef<HTMLInputElement>(null);
   const launcher = useRef<HTMLButtonElement>(null);
   const history = useRef<HTMLDivElement>(null);
@@ -36,9 +43,23 @@ export default function PompomChat() {
   useEffect(() => { if (history.current) history.current.scrollTop = history.current.scrollHeight; }, [messages, opened]);
   const close = () => { setOpened(false); launcher.current?.focus(); };
   const reactAndOpen = () => {
-    if (opened) { close(); return; }
+    if (suppressClick.current) { suppressClick.current = false; return; }
+    const nextLevel = Math.min(clickLevel + 1, 5);
+    setClickLevel(nextLevel);
+    if (angerTimer.current) window.clearTimeout(angerTimer.current);
+    if (opened && nextLevel < 5) close();
+    else setOpened(true);
     reactionTimers.current.forEach(window.clearTimeout);
-    setOpened(true); setReaction('wonder'); setBackPose(false);
+    setBackPose(false);
+    if (nextLevel >= 5) {
+      setReaction('angry');
+      angerTimer.current = window.setTimeout(() => {
+        setReaction('idle');
+        setClickLevel(0);
+      }, 4500);
+      return;
+    }
+    setReaction('wonder');
     reactionTimers.current = [
       window.setTimeout(() => setReaction('walking'), 650),
       window.setTimeout(() => setBackPose(true), 1250),
@@ -46,7 +67,45 @@ export default function PompomChat() {
       window.setTimeout(() => setReaction('idle'), 2600),
     ];
   };
-  useEffect(() => () => reactionTimers.current.forEach(window.clearTimeout), []);
+  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, startOffsetX: dragOffset.current.x, startOffsetY: dragOffset.current.y, rect: event.currentTarget.getBoundingClientRect(), moved: false };
+  };
+  const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    const dx = event.clientX - active.startX, dy = event.clientY - active.startY;
+    if (!active.moved && Math.hypot(dx, dy) < 6) return;
+    if (!active.moved) {
+      active.moved = true;
+      setDragging(true);
+      setBackPose(true);
+      setReaction('walking');
+    }
+    const baseLeft = active.rect.left - active.startOffsetX, baseRight = active.rect.right - active.startOffsetX;
+    const baseTop = active.rect.top - active.startOffsetY, baseBottom = active.rect.bottom - active.startOffsetY;
+    const x = Math.max(8 - baseLeft, Math.min(window.innerWidth - 8 - baseRight, active.startOffsetX + dx));
+    const y = Math.max(8 - baseTop, Math.min(window.innerHeight - 12 - baseBottom, active.startOffsetY + dy));
+    dragOffset.current = { x, y };
+    if (widget.current) widget.current.style.translate = `${x}px ${y}px`;
+  };
+  const onPointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const active = drag.current;
+    if (!active || active.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    drag.current = null;
+    if (!active.moved) return;
+    suppressClick.current = true;
+    window.setTimeout(() => { suppressClick.current = false; }, 80);
+    setDragging(false);
+    setBackPose(false);
+    setReaction('idle');
+  };
+  useEffect(() => () => {
+    reactionTimers.current.forEach(window.clearTimeout);
+    if (angerTimer.current) window.clearTimeout(angerTimer.current);
+  }, []);
   const send = async (text: string) => {
     const clean = text.trim().slice(0, 300);
     if (!clean || sending.current) return;
@@ -64,7 +123,7 @@ export default function PompomChat() {
     finally { sending.current = false; setBusy(false); }
   };
   const visit = (target: Page) => { setOpened(false); go(target); };
-  return <div className={`pompom-widget ${page === 'settings' ? 'pompom-settings' : ''}`}>
+  return <div ref={widget} className={`pompom-widget ${page === 'settings' ? 'pompom-settings' : ''}`}>
     {opened && <section className="pompom-panel" role="dialog" aria-modal="false" aria-labelledby="pompom-title" id="pompom-chat" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); close(); } }}>
       <header className="pompom-header"><Portrait /><div><span className="pompom-eyebrow">YOUR LITTLE COMPANION</span><h2 id="pompom-title">폼폼이와 이야기해요</h2><p><span />{aiMode ? 'Google Gemini · AI 대화' : '앱 사용 도우미 · 데모'}</p></div><button type="button" onClick={close} aria-label="챗봇 닫기"><X size={19}/></button></header>
       <div className="pompom-context"><Sparkles size={13}/>{titles[page]}에서 함께하고 있어요</div>
@@ -77,6 +136,6 @@ export default function PompomChat() {
       <form className="pompom-form" onSubmit={event => { event.preventDefault(); send(draft); }}><input ref={input} aria-label="폼폼에게 질문하기" value={draft} onChange={event => setDraft(event.target.value)} maxLength={300} placeholder={user ? `${user.name}님, 무엇이 궁금해요?` : '궁금한 앱 사용법을 물어봐'} autoComplete="off"/><button type="submit" aria-label="질문 보내기" disabled={busy || !draft.trim()}><ArrowUp size={19}/></button></form>
       <p className="pompom-disclaimer">{aiMode ? 'AI 답변은 틀릴 수 있어요 · 실시간 시세 미연결' : '준비된 도움말로 답해요 · 대화는 서버에 전송하지 않아요'}</p>
     </section>}
-    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`}`} aria-label={opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onClick={reactAndOpen}><span className="pompom-label">{opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">?</span><Portrait back={backPose} /><span className="pompom-spark">✦</span></button>
+    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`} ${dragging?'is-dragging':''}`} style={{'--pompom-scale': 1 + clickLevel * .28} as CSSProperties} aria-label={reaction==='angry'?'폼폼이 화났어요':opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClick={reactAndOpen}><span className="pompom-label">{reaction==='angry'?'그만 눌러!':opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">{reaction==='angry'?'!!':'?'}</span><Portrait back={backPose} kicking={dragging} /><span className="pompom-spark">✦</span></button>
   </div>;
 }
