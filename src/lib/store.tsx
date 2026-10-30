@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { companies, disclosures, defaultSettings, titles, type Page, type Scenario, type Settings } from './data';
 import { api, type User } from './api';
+import { supabase } from './supabase';
 function read<T>(key: string, fallback: T, valid: (v: unknown) => boolean): T { try {
     const v: unknown = JSON.parse(localStorage.getItem(key) || 'null');
     return valid(v) ? v as T : fallback;
@@ -22,7 +23,25 @@ function route(): Page { const p = location.hash.slice(1).split('?')[0]; return 
 function useStore() {
     const [user, setUser] = useState<User | null>(null);
     const [aiAvailable, setAiAvailable] = useState(false);
-    useEffect(() => { let active = true; api<{user: User | null; aiAvailable: boolean}>('session').then(data => { if (active) { setUser(data.user); setAiAvailable(data.aiAvailable); } }).catch(() => {}); return () => { active = false; }; }, []);
+    useEffect(() => { let active = true; api<{aiAvailable: boolean}>('session').then(data => { if (active) setAiAvailable(data.aiAvailable); }).catch(() => {});
+        if (!supabase) return () => { active = false; };
+        const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{
+            const account=session?.user;
+            setUser(account ? {id:account.id,email:account.email||'',name:String(account.user_metadata?.name||account.email?.split('@')[0]||'사용자').slice(0,20)} : null);
+            metadata.current=account?.user_metadata||{};
+            const cloud=metadata.current.radar_data;
+            if(account&&cloud&&typeof cloud==='object'){
+                const values=cloud as Record<string,unknown>;
+                if(stockIds(values.stocks))setStocks(values.stocks);
+                if(disclosureIds(values.saved))setSaved(values.saved);
+                if(disclosureIds(values.seen))setSeen(values.seen);
+                if(values.settings&&typeof values.settings==='object'&&!Array.isArray(values.settings)){try{const valid={...defaultSettings,...values.settings};localStorage.setItem('radar-settings',JSON.stringify(valid));setSettings(valid);}catch{}}
+                if(Array.isArray(values.checks)&&values.checks.every(item=>typeof item==='string'))setChecks(values.checks as string[]);
+                for(const key of ['stocks','saved','seen','settings','checks'])if(values[key]!==undefined){try{localStorage.setItem('radar-'+key,JSON.stringify(values[key]));}catch{}}
+            }
+        });
+        return () => {active=false;subscription.unsubscribe();};
+    }, []);
     const [page, setPage] = useState<Page>(route), [scenario, setScenario] = useState<Scenario>('');
     const [selected, setSelected] = useState(() => { try {
         const n = Number(sessionStorage.getItem('radar-selected'));
@@ -41,6 +60,8 @@ function useStore() {
         undo?: () => void;
     } | null>(null);
     const [dirty, setDirty] = useState(false), [pendingPage, setPendingPage] = useState<Page | null>(null);
+    const syncQueue = useRef(Promise.resolve());
+    const metadata = useRef<Record<string, unknown>>({});
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const notify = useCallback((text: string, undo?: () => void) => { clearTimeout(timer.current); setMessage({ text, undo }); timer.current = setTimeout(() => setMessage(null), 4500); }, []);
     useEffect(() => () => clearTimeout(timer.current), []);
@@ -51,6 +72,7 @@ function useStore() {
     } setPage(next); setScenario(''); window.scrollTo({ top: 0, behavior: 'instant' }); }; window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, [dirty, page]);
     const write = (key: string, value: unknown) => { try {
         localStorage.setItem(key, JSON.stringify(value));
+        if(supabase&&user){const client=supabase;const field=key.replace(/^radar-/,'');const existing=metadata.current.radar_data;metadata.current={...metadata.current,radar_data:{...(existing&&typeof existing==='object'?existing as Record<string,unknown>:{}),[field]:value}};const snapshot=metadata.current;syncQueue.current=syncQueue.current.then(async()=>{const {error}=await client.auth.updateUser({data:snapshot});if(error)notify('Supabase 저장 실패: '+error.message);}).catch(()=>notify('Supabase 저장에 실패했어요. 인터넷 연결을 확인해 주세요.'));}
         return true;
     }
     catch {
@@ -90,3 +112,4 @@ export function RadarProvider({ children }: {
 }) { return <Context.Provider value={useStore()}>{children}</Context.Provider>; }
 export function useRadar() { const c = useContext(Context); if (!c)
     throw new Error('RadarProvider required'); return c; }
+
