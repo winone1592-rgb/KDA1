@@ -111,3 +111,5 @@ Vite 개발 서버의 HTTP 200 응답과 React 진입 파일을 확인했습니�
 4. 이메일 인증이 켜져 있다면 회원가입 이메일을 확인한 후 로그인합니다. 로그인 후 관심종목 추가나 알림 설정 저장으로 동기화를 확인합니다. Dashboard → Table Editor → `user_preferences`에서 계정 UUID 행과 저장된 값을 확인할 수 있습니다.
 
 환경 오류가 표시되면 `.env`의 변수 이름에 `NEXT_PUBLIC_`가 아니라 `VITE_`를 사용했는지, 개발 서버를 재시작했는지 확인합니다.
+
+이메일 인증을 사용하지 않고 데이터베이스에 저장하려면 로그인 화면의 **이메일 인증 없이 바로 시작** 버튼을 사용합니다. Supabase Dashboard → Authentication → Sign In / Providers → Anonymous Sign-Ins를 활성화해야 하며, 익명 사용자도 `user_preferences` RLS를 통과해 저장합니다. 익명 계정은 같은 브라우저에 연결되며, 기기 변경/브라우저 데이터 삭제 전 계정 전환 기능을 별도 구현해야 합니다.
