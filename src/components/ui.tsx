@@ -1,5 +1,5 @@
 import { AnimatedNumber } from './AnimatedNumber';
-import { useEffect, useRef, useId, type ReactNode } from 'react';
+import { useEffect, useRef, useId, useState, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, ArrowRight, Bookmark, Check, ChevronRight, FileText, Plus, Radar, RefreshCw, Search, ShieldCheck, Sparkles, Star, TriangleAlert, X } from 'lucide-react';
 import { companies, percent, delta, type Disclosure } from '../lib/data';
 import { useRadar } from '../lib/store';
@@ -12,7 +12,7 @@ export function Badge({ children, tone = 'neutral' }: {
 }) { return <span className={`badge ${tone}`}>{children}</span>; }
 export function Avatar({ id }: {
     id: number;
-}) { const c = companies[id]; return <span aria-hidden="true" className={`avatar ${c.color}`}><img src={`${import.meta.env.BASE_URL}companies/${c.logo}.svg`} alt=""/></span>; }
+}) { const c = companies[id]; const [failed, setFailed] = useState(false); return <span aria-hidden="true" className={`avatar ${c.color}`}>{c.logo && !failed ? <img src={`${import.meta.env.BASE_URL}companies/${c.logo}.svg`} alt="" onError={() => setFailed(true)}/> : <b>{c.initials || c.name.slice(0, 2)}</b>}</span>; }
 export function Compare({ item, large = false }: {
     item: Disclosure;
     large?: boolean;
@@ -38,8 +38,7 @@ else if (!open && ref.current?.open)
     onClose(); }}><div className="flex items-center justify-between mb-5"><h2 id={headingId}>{title}</h2><button className="icon-button" onClick={onClose} aria-label="닫기"><X size={21}/></button></div>{children}</dialog>; }
 export function StockSearch({ onDone }: {
     onDone?: () => void;
-}) { const { stocks, toggleStock } = useRadar(); const [query, setQuery] = useSearch(); const list = companies.filter(c => `${c.name} ${c.code} ${c.sector}`.toLowerCase().includes(query.toLowerCase())); return <><label className="search-field"><Search size={18}/><input autoFocus placeholder="기업명, 코드, 업종 검색" value={query} onChange={e => setQuery(e.target.value)} aria-label="종목 검색"/>{query && <button onClick={() => setQuery('')} aria-label="검색어 지우기"><X size={16}/></button>}</label><p className="eyebrow mt-6 mb-2">실제 기업 {list.length}개 · 공시 수치는 가상 예시</p><div>{list.map(c => <div className="stock-row" key={c.id}><Avatar id={c.id}/><div className="flex-1"><b>{c.name}</b><p className="muted text-xs mt-1">{c.code} · {c.sector}</p></div><button aria-label={`${c.name} ${stocks.includes(c.id) ? '선택 해제' : '추가'}`} aria-pressed={stocks.includes(c.id)} className={`add-button ${stocks.includes(c.id) ? 'selected' : ''}`} onClick={() => toggleStock(c.id)}>{stocks.includes(c.id) ? <Check size={18}/> : <Plus size={18}/>}</button></div>)}{!list.length && <p className="empty-search">검색 결과가 없어요. 기업명이나 업종을 바꿔보세요.</p>}</div>{onDone && <button className="btn primary w-full mt-6" onClick={onDone} disabled={!stocks.length}>{stocks.length}개 종목으로 시작하기 <ArrowRight size={17}/></button>}</>; }
-import { useState } from 'react';
+}) { const { stocks, toggleStock } = useRadar(); const [query, setQuery] = useSearch(); const [market, setMarket] = useState<'전체'|'KOSPI'|'US'>('전체'); const list = companies.filter(c => (market === '전체' || (c.market === market && !!c.marketRank)) && `${c.name} ${c.code} ${c.sector}`.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>(a.marketRank||99)-(b.marketRank||99)); return <><div className="stock-market-tabs" aria-label="시장별 종목">{(['전체','KOSPI','US'] as const).map(item=><button key={item} aria-pressed={market===item} onClick={()=>setMarket(item)}>{item==='KOSPI'?'코스피 TOP 20':item==='US'?'미국 TOP 20':item}</button>)}</div><label className="search-field"><Search size={18}/><input autoFocus placeholder="기업명, 코드, 업종 검색" value={query} onChange={e => setQuery(e.target.value)} aria-label="종목 검색"/>{query && <button onClick={() => setQuery('')} aria-label="검색어 지우기"><X size={16}/></button>}</label><p className="eyebrow mt-6 mb-2">실제 기업 {list.length}개 · 공시 수치는 가상 예시</p><div>{list.map(c => <div className="stock-row" key={c.id}><Avatar id={c.id}/><div className="flex-1"><b>{c.name}</b><p className="muted text-xs mt-1">{c.code} · {c.sector}{c.marketRank ? ` · TOP ${c.marketRank}` : ''}</p></div><button aria-label={`${c.name} ${stocks.includes(c.id) ? '선택 해제' : '추가'}`} aria-pressed={stocks.includes(c.id)} className={`add-button ${stocks.includes(c.id) ? 'selected' : ''}`} onClick={() => toggleStock(c.id)}>{stocks.includes(c.id) ? <Check size={18}/> : <Plus size={18}/>}</button></div>)}{!list.length && <p className="empty-search">검색 결과가 없어요. 기업명이나 업종을 바꿔보세요.</p>}</div>{onDone && <button className="btn primary w-full mt-6" onClick={onDone} disabled={!stocks.length}>{stocks.length}개 종목으로 시작하기 <ArrowRight size={17}/></button>}</>; }
 function useSearch() { return useState(''); }
 export function DemoNote() { return <div className="demo-note"><ShieldCheck size={15}/><p>기업명·로고는 실제이며 공시 내용과 수치는 가상 시나리오입니다. 실제 DART 수집·AI 생성·푸시 발송은 연결되지 않았습니다.</p></div>; }
 export function Notice({ children, tone = 'yellow' }: {
