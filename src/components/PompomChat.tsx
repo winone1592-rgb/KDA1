@@ -16,7 +16,7 @@ function answer(value: string) {
   if (/안녕|고마워|폼폼/.test(value)) return '반가워! 오늘도 너의 작은 발견을 응원해 💛 궁금한 앱 사용법을 아래 질문에서 골라 봐.';
   return '아직 자유로운 AI 대화는 할 수 없지만, 앱 사용법은 도와줄 수 있어! 관심종목 추가, 알림 설정, 정정공시, 데모 데이터 중 궁금한 것을 물어봐 줘 🐾';
 }
-function Portrait({ back = false }: { back?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" /></span>; }
+function Portrait({ back = false }: { back?: boolean }) { return <span className={`pompom-portrait ${back ? 'is-back-pose' : 'is-front-pose'}`} aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-dance.png'}`} alt="" /></span>; }
 
 export default function PompomChat() {
   const { page, go, user, aiAvailable } = useRadar();
