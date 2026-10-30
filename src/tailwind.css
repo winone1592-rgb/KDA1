@@ -232,3 +232,4 @@ body{color:#3f382e}h1,h2,h3,h4,b,strong{color:#40392f}.muted,.page-heading p,.di
 @keyframes pompom-nap-rock{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(2deg) translateY(-3px)}}
 @keyframes pompom-cushion-bob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 @media(prefers-reduced-motion:reduce){.pompom-portrait.is-rest-pose img,.pompom-portrait.is-nap-pose img,.pompom-portrait.is-cushion-pose img{animation:none!important}}
+.pompom-launcher.is-dragging .pompom-portrait.is-back-pose img{animation:pompom-butt-sway .22s ease-in-out infinite alternate!important;transform-origin:50% 74%}
