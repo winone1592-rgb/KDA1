@@ -17,3 +17,78 @@
 /* Readable contrast across the soft yellow surfaces. */
 :root{--muted:#737d68}.eyebrow{color:#7b826c}.date-label{color:#778469}.date-label>span:last-child{color:#7e886e}.company-title{color:#3e4934}.card-headline{color:#535e46}.badge{color:#758367}.badge.yellow{color:#8b7428}.badge.green{color:#477354}.badge.red{color:#ab5547}.sidebar-caption,.sidebar-label{color:#89917b}.nav-item{color:#7c886c}.hero p{color:#92824a}.hero-caption{color:#968549}.stats-grid p{color:#7b886b}.sync-status{color:#7c8c6b}.compare .eyebrow{color:#7b886b}.compare-values span{color:#7f8d6e}.compare-values del{color:#929d83}.new-document p{color:#82946f}.card-foot>.muted{color:#8c997a}.search-field input::placeholder{color:#8b9879}.page-heading p{color:#7d8d6c}.panel .body-copy{color:#738362}.setting-row p,.setting-section-title p,.radio-cards p{color:#869677}.setting-row b,.radio-cards b{color:#687957}.notification-item p{color:#738462}.demo-note{color:#889879}.info-list dt{color:#8b987c}.info-list dd{color:#6b7e57}.notice{color:#968242}.notice p{color:#9b8e65}.timeline p{color:#7b8c68}.notification-banner p{color:#99874c}.notification-banner h2{color:#7f6d31}.compare-values strong{font-variant-numeric:tabular-nums}.card-headline{font-size:16px}.search-field input{font-size:13px}.badge{font-size:11px}.watch-update p{font-size:14px}.setting-row b,.radio-cards b{font-size:13px}.setting-row p,.radio-cards p{font-size:11px}.notification-item p{font-size:13px}.demo-note p{font-size:11px}.body-copy{font-size:14px}.text-button{font-size:12px}.stock-row b{font-size:14px}.muted.text-xs{font-size:11px}.sidebar-bottom p{font-size:10px}.nav-item{font-size:14px}.save-bar>div:first-child{color:#788a63}.check-row{color:#788a63;font-size:12px}.report-options label{color:#788a63;font-size:12px}.new-document b{color:#788c62}.empty-state p{color:#82936e}.sort-label{color:#758466}.toast .undo{font-size:11px}.main-content{scroll-margin-top:100px}.icon-button,.add-button{min-width:34px;min-height:34px}.scenario-option{color:#71845d}.notification-item.read{background:#fbfcf9}.page-detail,.page-ai,.page-timeline{animation:enter .2s ease-out}
 @media(max-width:700px){.hero h1{font-size:29px}.hero p{font-size:12px}.page-heading p{font-size:12px}.card-headline{font-size:16px}.company-title{font-size:15px}.compare-values strong{font-size:26px}.badge{font-size:10px}.search-field input{font-size:12px}.date-label{font-size:9px}.date-label>span:last-child{font-size:8px}.stats-grid p{font-size:10px}.sync-status{font-size:9px}.notification-item p{font-size:12px}.notification-item b{font-size:13px}.setting-row b{font-size:13px}.setting-row p{font-size:11px}.setting-section-title p{font-size:10px}.radio-cards b{font-size:13px}.radio-cards p{font-size:11px}.bottom-nav button{font-size:10px}.report-options label{font-size:11px}.demo-note p{font-size:10px}.body-copy{font-size:13px}.info-list{font-size:12px}.btn{min-height:44px}.save-bar .btn{min-height:40px}.notification-banner p{font-size:10px}.topbar-actions .icon-button{min-width:32px}.text-button{font-size:11px}.card-foot>.muted{font-size:10px}.card-foot .icon-button{min-width:38px;min-height:38px}}
+
+/* Motion accents: keep the existing palette and all layout dimensions. */
+.main-content{animation:page-arrive .55s cubic-bezier(.16,1,.3,1) both}
+.animated-number{display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important;font-variant-numeric:tabular-nums}
+.animated-number>span[aria-hidden]{display:inline!important;font:inherit!important;color:inherit!important;letter-spacing:inherit!important}
+.disclosure-card,.watch-card,.notification-item,.stats-grid>div,.detail-grid .panel,.settings-grid .panel{animation:card-arrive .65s cubic-bezier(.16,1,.3,1) both}
+.disclosure-card:nth-child(2),.watch-card:nth-child(2),.notification-item:nth-child(2),.stats-grid>div:nth-child(2){animation-delay:75ms}
+.disclosure-card:nth-child(3),.watch-card:nth-child(3),.notification-item:nth-child(3),.stats-grid>div:nth-child(3){animation-delay:150ms}
+.disclosure-card:nth-child(4),.watch-card:nth-child(4),.notification-item:nth-child(4){animation-delay:225ms}
+.watch-card:nth-child(5){animation-delay:275ms}.watch-card:nth-child(6){animation-delay:325ms}
+.compare-bars i{transform-origin:left;animation:bar-unfurl 1.15s cubic-bezier(.16,1,.3,1) both;animation-delay:180ms}
+.compare-bars i:nth-child(2){animation-delay:320ms}
+.compare-values strong{animation:number-glow 1.6s ease-out both}
+.compare-arrow{animation:arrow-pass 1s ease-out both}
+.hero{isolation:isolate;box-shadow:0 8px 30px #d8c3650d}
+.hero:before{content:"";position:absolute;inset:-120% -30%;background:linear-gradient(110deg,transparent 38%,#fffdf778 48%,#fffdf700 57%);pointer-events:none;transform:translateX(-60%);animation:hero-sheen 1.8s ease-out .2s both;z-index:1}
+.hero:after{content:"✦";position:absolute;right:27%;top:18%;font-size:16px;color:#c8ac46;opacity:.5;animation:star-float 4.5s ease-in-out infinite;pointer-events:none}
+.blip{animation:radar-signal 3s ease-out infinite}.blip.b2{animation-delay:.8s}.blip.b3{animation-delay:1.6s}
+.radar-center:after{content:"";position:absolute;inset:-9px;border:1px solid #b29b4966;border-radius:50%;animation:center-signal 3s ease-out infinite}
+.logo-mark{position:relative;overflow:hidden;box-shadow:0 3px 13px #dfbb3d12}
+.logo-mark:after{content:"";position:absolute;inset:-50%;background:linear-gradient(110deg,transparent 35%,#ffffff80 50%,transparent 65%);transform:translateX(-80%);animation:logo-sheen 1.2s ease-out .5s both;pointer-events:none}
+.logo:hover .logo-mark svg{transform:rotate(18deg);transition:transform .4s cubic-bezier(.2,1.8,.4,1)}
+.nav-item,.bottom-nav button>span{transition:background .25s,box-shadow .25s,color .25s}
+.nav-item.active{box-shadow:0 3px 15px #d6bd5312}.nav-item.active>svg,.bottom-nav .active svg{animation:nav-pop .45s cubic-bezier(.2,1.6,.5,1)}
+.btn.primary{position:relative;overflow:hidden;isolation:isolate;transition:box-shadow .25s,transform .25s,background .25s}
+.btn.primary:after{content:"";position:absolute;inset:-60%;background:linear-gradient(110deg,transparent 38%,#ffffff70 49%,transparent 61%);transform:translateX(-100%);pointer-events:none}
+.btn.primary:hover:not(:disabled){box-shadow:0 5px 17px #cfae3828;transform:translateY(-2px)}
+.btn.primary:hover:not(:disabled):after{animation:button-sheen .75s ease-out}
+.btn.primary:active:not(:disabled){transform:scale(.97)}
+.icon-button svg,.text-button svg,.hero-link svg{transition:transform .25s cubic-bezier(.2,1.5,.4,1)}
+.text-button:hover svg,.hero-link:hover svg{transform:translateX(4px)}
+.icon-button:hover svg{transform:scale(1.12)}
+.icon-button.starred svg,.icon-button.bookmarked svg,.add-button.selected svg{animation:favorite-pop .5s cubic-bezier(.2,1.8,.4,1)}
+.add-button.selected{box-shadow:0 0 0 4px #e6d27915}
+.disclosure-card:hover,.watch-card:hover{transform:translateY(-3px);box-shadow:0 9px 28px #7e773416;border-color:#ded4a4}
+.disclosure-card,.watch-card{transition:transform .25s,box-shadow .25s,border-color .25s}
+.ai-cta{position:relative;overflow:hidden;transition:box-shadow .25s}.ai-cta:hover{box-shadow:0 5px 22px #bca34420}
+.ai-cta>svg:first-child{animation:sparkle-turn 5s ease-in-out infinite}
+.ai-intro .section-icon{animation:soft-float 4s ease-in-out infinite}
+.timeline article{animation:card-arrive .6s cubic-bezier(.16,1,.3,1) both}.timeline article:nth-child(2){animation-delay:.17s}
+.timeline-dot.current{animation:timeline-pop .8s cubic-bezier(.2,1.7,.4,1) both}
+.timeline-dot.current:after{content:"";position:absolute;inset:-7px;border:1px solid #d8bc5c66;border-radius:50%;animation:center-signal 2.8s ease-out infinite}
+.toast{animation:toast-spring .5s cubic-bezier(.16,1.3,.3,1) both}
+.toast-check{position:relative;animation:favorite-pop .55s cubic-bezier(.2,1.8,.4,1)}
+.toast-check:after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid #efdb8d88;animation:success-ring .8s ease-out both}
+.toast-check:before{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;background:#efd776;border-radius:1px;box-shadow:18px -20px #efd776,-21px -15px #c4d5a5,25px 9px #c4d5a5,-22px 13px #efd776;animation:success-sparks .9s ease-out both;pointer-events:none}
+.modal[open]{animation:modal-spring .4s cubic-bezier(.16,1.2,.3,1)}.modal::backdrop{animation:backdrop-in .25s ease-out}
+.empty-orbit{animation:empty-bob 4s ease-in-out infinite}.empty-orbit i{animation:radar-signal 3s ease-out infinite}
+.check-progress span{transition:width .65s cubic-bezier(.16,1,.3,1)}
+input[type=checkbox]:checked{animation:check-pop .3s ease-out}
+@keyframes page-arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes card-arrive{from{opacity:0;translate:0 16px;scale:.985}to{opacity:1;translate:0 0;scale:1}}
+@keyframes bar-unfurl{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes number-glow{0%,25%{text-shadow:0 0 18px #ecc95066}100%{text-shadow:none}}
+@keyframes arrow-pass{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:translateX(0)}}
+@keyframes hero-sheen{to{transform:translateX(60%)}}
+@keyframes logo-sheen{to{transform:translateX(80%)}}
+@keyframes button-sheen{to{transform:translateX(100%)}}
+@keyframes star-float{0%,100%{transform:translateY(0) rotate(0);opacity:.3}50%{transform:translateY(-9px) rotate(30deg);opacity:.75}}
+@keyframes radar-signal{0%,100%{box-shadow:0 0 0 0 #c6af4b30}65%{box-shadow:0 0 0 12px #c6af4b00}}
+@keyframes center-signal{0%{transform:scale(.8);opacity:.6}90%,100%{transform:scale(2.5);opacity:0}}
+@keyframes nav-pop{0%{transform:scale(.8) rotate(-8deg)}70%{transform:scale(1.12) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes favorite-pop{0%{transform:scale(.65) rotate(-14deg)}65%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes sparkle-turn{0%,75%,100%{transform:rotate(0) scale(1)}85%{transform:rotate(-12deg) scale(1.12)}92%{transform:rotate(9deg) scale(1)}}
+@keyframes soft-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes timeline-pop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes toast-spring{from{opacity:0;translate:0 20px;scale:.95}to{opacity:1;translate:0 0;scale:1}}
+@keyframes success-ring{from{transform:scale(.7);opacity:.8}to{transform:scale(1.8);opacity:0}}
+@keyframes success-sparks{0%{transform:scale(.3) rotate(-30deg);opacity:0}25%{opacity:1}100%{transform:scale(1.5) rotate(15deg);opacity:0}}
+@keyframes modal-spring{from{opacity:0;transform:translateY(15px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes empty-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes check-pop{50%{transform:scale(1.16)}}
+@media(hover:none){.disclosure-card:hover,.watch-card:hover,.btn.primary:hover:not(:disabled){transform:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.main-content,.disclosure-card,.watch-card,.notification-item,.panel,.stats-grid>div{opacity:1;translate:none;scale:none}.compare-bars i{transform:none}.hero:before,.hero:after,.logo-mark:after,.toast-check:before,.toast-check:after,.timeline-dot.current:after,.radar-center:after{display:none}}
