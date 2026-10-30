@@ -6,6 +6,8 @@ export interface Company {
     code: string;
     sector: string;
     color: string;
+    logo: string;
+    website: string;
 }
 export interface Disclosure {
     id: number;
@@ -23,12 +25,12 @@ export interface Disclosure {
     comparable: boolean;
 }
 export const companies: Company[] = [
-    { id: 0, name: '가상기업 A', code: 'DEMO-A', sector: '반도체 · IT', color: 'yellow' },
-    { id: 1, name: '가상기업 B', code: 'DEMO-B', sector: '바이오 · 헬스케어', color: 'green' },
-    { id: 2, name: '가상기업 C', code: 'DEMO-C', sector: '플랫폼 · 서비스', color: 'purple' },
-    { id: 3, name: '가상기업 D', code: 'DEMO-D', sector: '에너지 · 소재', color: 'orange' },
-    { id: 4, name: '가상기업 E', code: 'DEMO-E', sector: '모빌리티', color: 'blue' },
-    { id: 5, name: '가상기업 F', code: 'DEMO-F', sector: '소비재', color: 'pink' },
+{"id":0,"name":"삼성전자","code":"005930","sector":"반도체 · IT","color":"samsung","logo":"samsung","website":"https://www.samsung.com/sec/"},
+{"id":1,"name":"NAVER","code":"035420","sector":"인터넷 · AI","color":"naver","logo":"naver","website":"https://www.navercorp.com/"},
+{"id":2,"name":"카카오","code":"035720","sector":"플랫폼 · 서비스","color":"kakao","logo":"kakao","website":"https://www.kakaocorp.com/"},
+{"id":3,"name":"현대자동차","code":"005380","sector":"자동차 · 모빌리티","color":"hyundai","logo":"hyundai","website":"https://www.hyundai.com/"},
+{"id":4,"name":"기아","code":"000270","sector":"자동차 · 모빌리티","color":"kia","logo":"kia","website":"https://www.kia.com/"},
+{"id":5,"name":"LG전자","code":"066570","sector":"가전 · 전자","color":"lg","logo":"lg","website":"https://www.lg.com/"}
 ];
 export const disclosures: Disclosure[] = [
     { id: 0, companyId: 0, title: '연결 누적 매출액 정정 제출', report: '분기', kind: '정정', metric: '매출액', before: 100, after: 90, unit: '억원', time: '방금 전', date: '2026.10.30 10:42', note: '연결 매출액 집계 오류를 바로잡은 가상 정정 사례입니다.', comparable: true },
