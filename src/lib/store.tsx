@@ -24,16 +24,75 @@ function useStore() {
     const [user, setUser] = useState<User | null>(null);
     const [authReady,setAuthReady]=useState(false);
     const [aiAvailable, setAiAvailable] = useState(false);
-    useEffect(() => { let active = true; api<{aiAvailable: boolean}>('session').then(data => { if (active) setAiAvailable(data.aiAvailable); }).catch(() => {});
-        if (!supabase) { setAuthReady(true); return () => { active = false; }; }
-        const client=supabase;
-        const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{
+    useEffect(() => {
+        let active = true;
+        let latestUserId: string | null = null;
+        let preferenceTimer: ReturnType<typeof setTimeout> | undefined;
+        api<{ aiAvailable: boolean }>('session')
+            .then(data => { if (active) setAiAvailable(data.aiAvailable); })
+            .catch(() => {});
+
+        if (!supabase) {
             setAuthReady(true);
-            const account=session?.user;
-            setUser(account ? {id:account.id,email:account.email||'',name:String(account.user_metadata?.name||account.email?.split('@')[0]||'사용자').slice(0,20)} : null);
-            if(account)setTimeout(async()=>{try{const {data,error}=await client.from('user_preferences').select('*').eq('user_id',account.id).maybeSingle();if(error)throw error;if(data){if(stockIds(data.watchlist)){setStocks(data.watchlist);localStorage.setItem('radar-stocks',JSON.stringify(data.watchlist));}if(disclosureIds(data.saved_disclosures)){setSaved(data.saved_disclosures);localStorage.setItem('radar-saved',JSON.stringify(data.saved_disclosures));}if(disclosureIds(data.read_disclosures)){setSeen(data.read_disclosures);localStorage.setItem('radar-seen',JSON.stringify(data.read_disclosures));}if(data.notification_settings&&typeof data.notification_settings==='object'){const settings={...defaultSettings,...data.notification_settings};setSettings(settings);localStorage.setItem('radar-settings',JSON.stringify(settings));}if(Array.isArray(data.checklist)){setChecks(data.checklist);localStorage.setItem('radar-checks',JSON.stringify(data.checklist));}}}catch(error){console.error('Supabase preferences could not be loaded',error);}},0);
+            return () => { active = false; };
+        }
+
+        const client = supabase;
+        const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+            setAuthReady(true);
+            const account = session?.user;
+            latestUserId = account?.id ?? null;
+            setUser(account ? {
+                id: account.id,
+                email: account.email || '',
+                name: String(account.user_metadata?.name || account.email?.split('@')[0] || '사용자').slice(0, 20),
+            } : null);
+
+            // Token refreshes do not change preferences; avoid re-reading the profile for them.
+            if (!account || !['INITIAL_SESSION', 'SIGNED_IN', 'USER_UPDATED'].includes(event)) {
+                if (!account && preferenceTimer) clearTimeout(preferenceTimer);
+                return;
+            }
+
+            if (preferenceTimer) clearTimeout(preferenceTimer);
+            preferenceTimer = setTimeout(async () => {
+                try {
+                    const { data, error } = await client.from('user_preferences')
+                        .select('*').eq('user_id', account.id).maybeSingle();
+                    if (error) throw error;
+                    if (!active || latestUserId !== account.id || !data) return;
+                    if (stockIds(data.watchlist)) {
+                        setStocks(data.watchlist);
+                        localStorage.setItem('radar-stocks', JSON.stringify(data.watchlist));
+                    }
+                    if (disclosureIds(data.saved_disclosures)) {
+                        setSaved(data.saved_disclosures);
+                        localStorage.setItem('radar-saved', JSON.stringify(data.saved_disclosures));
+                    }
+                    if (disclosureIds(data.read_disclosures)) {
+                        setSeen(data.read_disclosures);
+                        localStorage.setItem('radar-seen', JSON.stringify(data.read_disclosures));
+                    }
+                    if (data.notification_settings && typeof data.notification_settings === 'object') {
+                        const settings = { ...defaultSettings, ...data.notification_settings };
+                        setSettings(settings);
+                        localStorage.setItem('radar-settings', JSON.stringify(settings));
+                    }
+                    if (Array.isArray(data.checklist)) {
+                        setChecks(data.checklist);
+                        localStorage.setItem('radar-checks', JSON.stringify(data.checklist));
+                    }
+                } catch (error) {
+                    if (active && latestUserId === account.id) console.error('Supabase preferences could not be loaded', error);
+                }
+            }, 0);
         });
-        return () => {active=false;subscription.unsubscribe();};
+
+        return () => {
+            active = false;
+            if (preferenceTimer) clearTimeout(preferenceTimer);
+            subscription.unsubscribe();
+        };
     }, []);
     const [page, setPage] = useState<Page>(route), [scenario, setScenario] = useState<Scenario>('');
     const [selected, setSelected] = useState(() => { try {
