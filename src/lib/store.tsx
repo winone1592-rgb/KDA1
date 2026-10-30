@@ -25,7 +25,7 @@ function useStore() {
     const [authReady,setAuthReady]=useState(false);
     const [aiAvailable, setAiAvailable] = useState(false);
     useEffect(() => { let active = true; api<{aiAvailable: boolean}>('session').then(data => { if (active) setAiAvailable(data.aiAvailable); }).catch(() => {});
-        if (!supabase) return () => { active = false; };
+        if (!supabase) { setAuthReady(true); return () => { active = false; }; }
         const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{
             setAuthReady(true);
             const account=session?.user;
