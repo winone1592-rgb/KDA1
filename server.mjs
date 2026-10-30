@@ -1,7 +1,11 @@
-import http from 'node:http';
-import {readFile} from 'node:fs/promises';
-import path from 'node:path';
-const root=process.cwd();
-const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.png':'image/png'};
-const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost');const file=path.resolve(root,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return;}const data=await readFile(file);res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'});res.end(data);}catch{res.writeHead(404).end('Not found');}});
-server.listen(Number(process.env.PORT)||5173,'127.0.0.1',()=>console.log('KIWOOM RADAR: http://localhost:'+(process.env.PORT||5173)));
+// Compatibility entry point for users of the previous version.
+import { createServer } from 'vite';
+try {
+ const server = await createServer({server:{host:'127.0.0.1',port:5173,strictPort:true}});
+ await server.listen();
+ server.printUrls();
+} catch(error) {
+ console.error('서버를 시작하지 못했습니다. npm install 실행 여부와 5173 포트 사용 여부를 확인해 주세요.');
+ console.error(error.message);
+ process.exitCode=1;
+}
