@@ -72,7 +72,7 @@ function useStore() {
     } setPage(next); setScenario(''); window.scrollTo({ top: 0, behavior: 'instant' }); }; window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash); }, [dirty, page]);
     const write = (key: string, value: unknown) => { try {
         localStorage.setItem(key, JSON.stringify(value));
-        if(supabase&&user){const client=supabase;const field=key.replace(/^radar-/,'');const existing=metadata.current.radar_data;metadata.current={...metadata.current,radar_data:{...(existing&&typeof existing==='object'?existing as Record<string,unknown>:{}),[field]:value}};const snapshot=metadata.current;syncQueue.current=syncQueue.current.then(async()=>{const {error}=await client.auth.updateUser({data:snapshot});if(error)notify('Supabase 저장 실패: '+error.message);}).catch(()=>notify('Supabase 저장에 실패했어요. 인터넷 연결을 확인해 주세요.'));}
+        if(supabase&&user){const client=supabase;const field=key.replace(/^radar-/,'');const row:Record<string,unknown>={user_id:user.id,display_name:user.name,updated_at:new Date().toISOString()};const map:Record<string,string>={stocks:'watchlist',saved:'saved_disclosures',seen:'read_disclosures',settings:'notification_settings',checks:'checklist'};row[map[field]||field]=value;syncQueue.current=syncQueue.current.then(async()=>{const {error}=await client.from('user_preferences').upsert(row,{onConflict:'user_id'});if(error)throw error;}).catch((error)=>notify('Supabase 저장 실패: '+(error?.message||'SQL 테이블 또는 RLS 정책을 확인해 주세요.')));}
         return true;
     }
     catch {

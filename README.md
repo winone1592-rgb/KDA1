@@ -103,3 +103,11 @@ Vite 개발 서버의 HTTP 200 응답과 React 진입 파일을 확인했습니�
 - 페이지 이동과 접기 후에도 대화가 유지되며 새로고침하면 초기화됩니다. 최근 40개 메시지만 유지합니다. Escape 닫기, 입력 포커스 복귀, 동작 줄이기 설정을 지원합니다.
 - 모바일 하단 메뉴 및 설정 저장 영역을 피하도록 배치했습니다. 원격 마우스 문제로 브라우저 육안 검증은 수행하지 않았습니다.
 - 검증: npm run build 성공, npm test 22개 통과 (대화 전송·초기화·이동 후 유지·키보드 닫기 포함).
+
+### Supabase 연결
+1. `.env`에 `VITE_SUPABASE_URL`과 `VITE_SUPABASE_PUBLISHABLE_KEY`를 입력합니다. `.env`는 `.gitignore`에 제외되어 GitHub에 올라가지 않습니다.
+2. 저장소의 `supabase/migrations/202610300001_user_preferences.sql` 전체를 Supabase Dashboard → SQL Editor → New query에 붙여넣고 Run을 누릅니다. 이 SQL은 사용자별 `user_preferences` 테이블과 본인 행에만 접근하는 RLS 정책을 만듭니다.
+3. `.env`를 처음 만들거나 수정했다면 Vite 개발 서버를 `Ctrl+C`로 종료한 뒤 `npm run dev`로 다시 실행합니다. 배포 서비스에도 같은 두 `VITE_SUPABASE_*` 환경변수를 production/build 환경에 별도로 등록한 후 다시 배포해야 합니다.
+4. 이메일 인증이 켜져 있다면 회원가입 이메일을 확인한 후 로그인합니다. 로그인 후 관심종목 추가나 알림 설정 저장으로 동기화를 확인합니다. Dashboard → Table Editor → `user_preferences`에서 계정 UUID 행과 저장된 값을 확인할 수 있습니다.
+
+환경 오류가 표시되면 `.env`의 변수 이름에 `NEXT_PUBLIC_`가 아니라 `VITE_`를 사용했는지, 개발 서버를 재시작했는지 확인합니다.
