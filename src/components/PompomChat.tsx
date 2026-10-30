@@ -16,7 +16,7 @@ function answer(value: string) {
   if (/안녕|고마워|폼폼/.test(value)) return '반가워! 오늘도 너의 작은 발견을 응원해 💛 궁금한 앱 사용법을 아래 질문에서 골라 봐.';
   return '아직 자유로운 AI 대화는 할 수 없지만, 앱 사용법은 도와줄 수 있어! 관심종목 추가, 알림 설정, 정정공시, 데모 데이터 중 궁금한 것을 물어봐 줘 🐾';
 }
-function Portrait({ back = false, kicking = false }: { back?: boolean; kicking?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" />{kicking && <span className="pompom-legs"><i/><i/></span>}</span>; }
+function Portrait({ back = false }: { back?: boolean }) { return <span className="pompom-portrait" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}chatbot/${back ? 'pompom-back.png' : 'pompom-cutout.png'}`} alt="" /></span>; }
 
 export default function PompomChat() {
   const { page, go, user, aiAvailable } = useRadar();
@@ -136,6 +136,6 @@ export default function PompomChat() {
       <form className="pompom-form" onSubmit={event => { event.preventDefault(); send(draft); }}><input ref={input} aria-label="폼폼에게 질문하기" value={draft} onChange={event => setDraft(event.target.value)} maxLength={300} placeholder={user ? `${user.name}님, 무엇이 궁금해요?` : '궁금한 앱 사용법을 물어봐'} autoComplete="off"/><button type="submit" aria-label="질문 보내기" disabled={busy || !draft.trim()}><ArrowUp size={19}/></button></form>
       <p className="pompom-disclaimer">{aiMode ? 'AI 답변은 틀릴 수 있어요 · 실시간 시세 미연결' : '준비된 도움말로 답해요 · 대화는 서버에 전송하지 않아요'}</p>
     </section>}
-    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`} ${dragging?'is-dragging':''}`} style={{'--pompom-scale': 1 + clickLevel * .28} as CSSProperties} aria-label={reaction==='angry'?'폼폼이 화났어요':opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClick={reactAndOpen}><span className="pompom-label">{reaction==='angry'?'그만 눌러!':opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">{reaction==='angry'?'!!':'?'}</span><Portrait back={backPose} kicking={dragging} /><span className="pompom-spark">✦</span></button>
+    <button ref={launcher} className={`pompom-launcher ${opened ? 'is-open' : ''} ${reaction==='idle'?'':`is-${reaction}`} ${dragging?'is-dragging':''}`} style={{'--pompom-scale': 1 + clickLevel * .28} as CSSProperties} aria-label={reaction==='angry'?'폼폼이 화났어요':opened ? '폼폼 챗봇 닫기' : '폼폼 챗봇 열기'} aria-expanded={opened} aria-controls={opened ? 'pompom-chat' : undefined} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onClick={reactAndOpen}><span className="pompom-label">{reaction==='angry'?'그만 눌러!':opened ? '잠깐 쉬기' : '무엇이 궁금해?'}</span><span className="pompom-question" aria-hidden="true">{reaction==='angry'?'!!':'?'}</span><Portrait back={backPose} /><span className="pompom-spark">✦</span></button>
   </div>;
 }
