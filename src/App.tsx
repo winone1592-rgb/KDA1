@@ -1,6 +1,6 @@
 import Account from './components/Account';
 import AuthScreen from './components/AuthScreen';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Bell, Check, LayoutDashboard, Menu, Search, Settings as SettingsIcon, Star, X } from 'lucide-react';
 import { disclosures, titles, type Page } from './lib/data';
 import { RadarProvider, useRadar } from './lib/store';
@@ -23,9 +23,18 @@ function Shell() {
   const { user, authReady, page, go, stocks, seen, message, setMessage, pendingPage, setPendingPage, discard } = useRadar();
   const [search, setSearch] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
+  const previousPage = useRef(page);
   useEffect(() => {
     document.title = `${titles[page]} · RADAR`;
     document.getElementById('main-content')?.focus({ preventScroll: true });
+  }, [page]);
+  useEffect(() => {
+    if (previousPage.current === page) return;
+    previousPage.current = page;
+    setTransitioning(true);
+    const timeout = window.setTimeout(() => setTransitioning(false), 450);
+    return () => window.clearTimeout(timeout);
   }, [page]);
   const unread = disclosures.filter(item => !seen.includes(item.id)).length;
   const current = ['detail', 'ai', 'timeline'].includes(page) ? 'feed' : page === 'onboarding' ? 'stocks' : page;
@@ -61,6 +70,11 @@ function Shell() {
       <nav className="bottom-nav" aria-label="모바일 메뉴">{nav.map(item => <button key={item.page} className={current === item.page ? 'active' : ''} aria-current={current === item.page ? 'page' : undefined} onClick={() => go(item.page)}><span><item.icon size={21}/>{item.page === 'notifications' && unread > 0 && <i/>}</span>{item.label === '내 관심종목' ? '내 종목' : item.label === '알림 센터' ? '알림' : item.label === '알림 설정' ? '설정' : item.label}</button>)}</nav>
     </div>
     <Suspense fallback={null}><PompomChat key={user.id}/></Suspense>
+    {transitioning && <div className="screen-transition" role="status" aria-live="polite" aria-label={`${titles[page]} 화면으로 이동 중`}>
+      <span className="transition-spinner" aria-hidden="true"><i/><i/></span>
+      <strong>{titles[page]} 화면으로 이동 중</strong>
+      <small>잠시만 기다려 주세요</small>
+    </div>}
     <Modal open={search} onClose={() => setSearch(false)} title="내 레이더에 기업 추가"><StockSearch/><button className="btn primary w-full mt-6" onClick={() => setSearch(false)}>선택 완료 · {stocks.length}개</button></Modal>
     <Modal open={!!pendingPage} onClose={() => setPendingPage(null)} title="저장하지 않은 설정이 있어요"><p className="muted mb-6">이동하면 현재 변경사항이 사라집니다. 설정을 저장하려면 이 화면에 머물러 주세요.</p><div className="flex gap-3"><button className="btn secondary grow" onClick={() => setPendingPage(null)}>계속 수정하기</button><button className="btn primary grow" onClick={discard}>저장하지 않고 이동</button></div></Modal>
     {message && <div className="toast" role="status" aria-live="polite"><span className="toast-check"><Check size={16}/></span><span>{message.text}</span>{message.undo && <button className="undo" onClick={message.undo}>실행 취소</button>}<button aria-label="알림 닫기" onClick={() => setMessage(null)}><X size={16}/></button></div>}
