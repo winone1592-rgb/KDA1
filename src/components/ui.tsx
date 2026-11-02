@@ -1,7 +1,7 @@
 import { AnimatedNumber } from './AnimatedNumber';
 import { useEffect, useRef, useId, useState, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, ArrowRight, ArrowLeftRight, Bookmark, Check, ChevronRight, FileText, Plus, Radar, RefreshCw, Search, ShieldCheck, Sparkles, Star, TriangleAlert, X } from 'lucide-react';
-import { companies, percent, delta, type Disclosure } from '../lib/data';
+import { companies, disclosures, percent, delta, type Disclosure } from '../lib/data';
 import { useRadar } from '../lib/store';
 export function Logo({ small = false }: {
     small?: boolean;
@@ -51,6 +51,41 @@ export function CompareDisclosureModal({ item, open, onClose }: { item: Disclosu
       </div>
       <label className="compare-slider-control"><span>이전 공시</span><input type="range" min="0" max="100" value={focus} aria-label="비교 강조 초점 이동" aria-valuetext={focus < 50 ? '이전 공시 강조' : focus > 50 ? '정정 공시 강조' : '양쪽 공시 동일 강조'} onChange={event => setFocus(Number(event.target.value))}/><span>정정 공시</span><output>{focus < 50 ? '이전본' : focus > 50 ? '정정본' : '균형'} 강조</output></label>
       <div className="compare-reason"><span>변경 이유</span><p>{item.correctionReason ?? item.note}</p><strong>{item.metric} <del>{item.before}{item.unit}</del><ArrowRight size={15}/><b>{item.after}{item.unit}</b><Badge tone={item.after < item.before ? 'red' : 'green'}>{percent(item)}</Badge></strong></div>
+    </Modal>;
+}
+
+const numericToken = /^\d[\d,.]*(?:\s?(?:억원|만원|원|주|%|배|건|명|개월|년|월|일))?$/;
+function HighlightNumbers({ text }: { text: string }) {
+    return <>{text.split(/(\d[\d,.]*(?:\s?(?:억원|만원|원|주|%|배|건|명|개월|년|월|일))?)/g).map((part, index) => numericToken.test(part) ? <mark key={index}>{part}</mark> : part)}</>;
+}
+function PairDocumentPanel({ item, label, focus, left }: { item: Disclosure; label: string; focus: number; left: boolean }) {
+    const company = companies[item.companyId];
+    const paragraphs = item.correctedText?.length ? item.correctedText : item.previousText?.length ? item.previousText : [item.note];
+    return <article className={`compare-document pair-document ${left ? 'pair-left' : 'pair-right'}`} style={{ opacity: left ? .76 + (100 - focus) / 420 : .76 + focus / 420 }}>
+      <header><span className="compare-version">{label}</span><div className="pair-company-heading"><Avatar id={company.id}/><div><b>{company.name}</b><small>{company.code} · {company.sector}</small></div></div><Badge tone={item.kind === '정정' ? 'yellow' : 'green'}>{item.kind === '정정' ? '정정 공시' : '신규 공시'}</Badge></header>
+      <div className="compare-document-body"><h3>{item.title}</h3><span className="document-subtitle">{item.date} · {item.report}보고서</span><div className="pair-metric"><small>핵심 항목 · {item.metric}</small><strong>{item.comparable ? <><del>{item.before}{item.unit}</del><ArrowRight size={14}/>{item.after}{item.unit}</> : <>{item.after}{item.unit}<em>신규</em></>}</strong></div>{paragraphs.map((text, index) => <p className="compare-sentence" key={index}><HighlightNumbers text={text}/></p>)}{item.correctionReason && <p className="pair-reason"><b>정정 사유</b>{item.correctionReason}</p>}</div>
+      <footer><FileText size={14}/>{item.report}보고서 · {item.time}</footer>
+    </article>;
+}
+export function CompareTwoDisclosuresModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+    const firstId = disclosures[0]?.id ?? 0;
+    const [leftId, setLeftId] = useState(firstId);
+    const [rightId, setRightId] = useState(disclosures.find(item => item.id !== firstId)?.id ?? firstId);
+    const [focus, setFocus] = useState(50);
+    useEffect(() => { if (open) { setLeftId(firstId); setRightId(disclosures.find(item => item.id !== firstId)?.id ?? firstId); setFocus(50); } }, [open, firstId]);
+    const left = disclosures.find(item => item.id === leftId);
+    const right = disclosures.find(item => item.id === rightId);
+    const optionLabel = (item: Disclosure) => `${companies[item.companyId].name} · ${item.title} · ${item.date}`;
+    return <Modal open={open} onClose={onClose} title="공시 2건 나란히 비교" className="compare-modal pair-compare-modal">
+      <p className="pair-compare-intro">비교할 공시를 각각 선택하면 기업이 달라도 한 화면에서 살펴볼 수 있어요.</p>
+      <div className="pair-compare-selectors">
+        <label><span><i className="pair-dot left"/>공시 A</span><select value={leftId} onChange={event => setLeftId(Number(event.target.value))}>{disclosures.filter(item => item.id !== rightId).map(item => <option key={item.id} value={item.id}>{optionLabel(item)}</option>)}</select></label>
+        <span className="pair-selector-arrow"><ArrowLeftRight size={18}/></span>
+        <label><span><i className="pair-dot right"/>공시 B</span><select value={rightId} onChange={event => setRightId(Number(event.target.value))}>{disclosures.filter(item => item.id !== leftId).map(item => <option key={item.id} value={item.id}>{optionLabel(item)}</option>)}</select></label>
+      </div>
+      <div className="compare-sample-note"><ShieldCheck size={15}/><p>현재 표시되는 본문은 비교 UI용 예시 문안입니다. 실제 DART 원문 비교는 아직 연결되지 않았습니다.</p></div>
+      {left && right && <div className="compare-documents pair-compare-documents"><PairDocumentPanel item={left} label="A" focus={focus} left/><PairDocumentPanel item={right} label="B" focus={focus} left={false}/></div>}
+      <label className="compare-slider-control"><span>공시 A</span><input type="range" min="0" max="100" value={focus} aria-label="비교 강조 초점 이동" aria-valuetext={focus < 50 ? '공시 A 강조' : focus > 50 ? '공시 B 강조' : '양쪽 공시 동일 강조'} onChange={event => setFocus(Number(event.target.value))}/><span>공시 B</span><output>{focus < 50 ? '공시 A' : focus > 50 ? '공시 B' : '균형'} 강조</output></label>
     </Modal>;
 }
 const emptyCopy = { nostocks: { icon: Star, title: '아직 관심종목이 없어요', body: '궁금한 기업을 등록하면 공시 변화를\n한곳에서 모아볼 수 있어요.', button: '첫 관심종목 등록하기' }, nochanges: { icon: ShieldCheck, title: '새로운 변화가 없어요', body: '지금은 모든 변화를 확인했어요.\n필터를 바꾸거나 새로운 공시를 확인해 보세요.', button: '전체 변화 보기' }, error: { icon: RefreshCw, title: '공시를 불러오지 못했어요', body: '잠시 후 다시 시도해 주세요.\n네트워크 상태를 함께 확인해 주세요.', button: '다시 시도하기' }, nodoc: { icon: FileText, title: '비교할 이전 문서가 없어요', body: '처음 제출된 공시는 증감률을 계산하지 않아요.\n공시 요약과 원문을 먼저 확인해 주세요.', button: 'DART 검색 열기' }, noai: { icon: Sparkles, title: 'AI 설명을 잠시 보류했어요', body: '설명에 필요한 수치 근거가 충분하지 않아요.\n확인된 공시 사실부터 살펴보세요.', button: '공시 사실 확인하기' } };
